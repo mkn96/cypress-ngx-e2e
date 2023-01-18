@@ -260,7 +260,7 @@ describe('First suit', () => {
 
     })
 
-    it.only('datepicker', () => {
+    it('datepicker', () => {
         cy.visit('/')
         cy.contains('Forms').click()
         cy.contains('Datepicker').click()
