@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-describe('First suit', () => {
+describe('ngx-e2e-tests', () => {
     it('first test', () => {
         cy.visit('/')
         cy.contains('Forms').click()
@@ -260,38 +260,73 @@ describe('First suit', () => {
 
     })
 
-    it('datepicker', () => {
+    it('datepicker / assert property', () => {
+        function selectDayFromCurrent(day){
+            let date = new Date()
+            date.setDate(date.getDate() + day)
+            let futureDay = date.getDay()
+            let futureMonth = date.toLocaleString('default', {month: 'short'})
+            let dateAssert = futureMonth+' '+futureDay+', '+date.getFullYear()
+           cy.get('nb-calendar-navigation').invoke('attr', 'ng-reflect-date')
+           .then( dateAttribute => {
+               if(!dateAttribute.includes(futureMonth)){
+                   cy.get('[data-name="chevron-right"]').click()
+                   selectDayFromCurrent()
+               } else {
+                   cy.get('nb-calendar-day-picker [class="day-cell ng-star-inserted"]').contains(futureDay).click()
+               }
+           })
+           return dateAssert
+       }
         cy.visit('/')
         cy.contains('Forms').click()
         cy.contains('Datepicker').click()
+        cy.contains('nb-card', 'Common Datepicker')
+         .find('input')
+         .then( input => {
+        cy.wrap(input).click()
+        let dateAssert = selectDayFromCurrent(5)
+        cy.wrap(input).invoke('prop', 'value')
+        .should('contain', dateAssert)
 
-        let date = new Date()
-            date.setDate(date.getDate() + 5)
-            let futureDay = date.getDay()
-            let futureMonth = date.getMonth()
-            let futureYear = date.toLocaleString('default', {month: 'short'})
-
-        cy
-        .contains('nb-card', 'Common Datepicker')
-        .find('input')
-        .then( input => {
-            cy.wrap(input).click()
-            cy.get('nb-calendar-navigation').invoke('attr', 'ng-reflect-date')
-            .then( dateAttribute => {
-                if(!dateAttribute.includes(futureMonth)){
-                    cy.get('[data-name="chevron-right"]').click()
-                } else {
-                    cy.get('nb-calendar-day-picker').contains(futureDay).click()
-                }
-            })
-           /* cy
-            .get('nb-calendar-day-picker')
-            .contains('15')
-            .click()
-            cy.wrap(input).invoke('prop', 'value')
-            .should('contain', 'Jan 15, 2023')
-*/
         })
     })
+
+    it('tooltips', () => {
+        cy.visit('/')
+        cy.contains('Modal & Overlays').click()
+        cy.contains('Tooltip').click()
+
+        cy.contains('nb-card', 'Colored Tooltips')
+        .contains('Default').click()
+        cy.get('nb-tooltip')
+        .should('contain', 'This is a tooltip')
+    })
+
+    it.only('browser dialog boxes', () => {
+        cy.visit('/')
+        cy.contains('Tables & Data').click()
+        cy.contains('Smart Table').click()
+
+        //v1
+        cy.get('tbody tr').first().find('.nb-trash').click()
+        cy.on('window:confirm', (confirm) => {
+            expect(confirm).to.equal('Are you sure you want to delete?')
+        })    
+
+        //v2
+        const stub = cy.stub()
+        cy.on('window:confirm', stub)
+        cy.get('tbody tr').first().find('.nb-trash').click().then(() => {
+           expect(stub.getCall(0)).to.be.calledWith('Are you sure you want to delete?')
+        })
+
+        //v3
+        cy.get('tbody tr').first().find('.nb-trash').click()
+        cy.on('window:confirm', () => false)
+
+
+    })
+
 
 })
