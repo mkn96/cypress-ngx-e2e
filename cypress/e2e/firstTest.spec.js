@@ -303,7 +303,7 @@ describe('ngx-e2e-tests', () => {
         .should('contain', 'This is a tooltip')
     })
 
-    it.only('browser dialog boxes', () => {
+    it('browser dialog boxes', () => {
         cy.visit('/')
         cy.contains('Tables & Data').click()
         cy.contains('Smart Table').click()
